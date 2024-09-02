@@ -1,0 +1,48 @@
+{
+  "name": "npm-audit-dashboard",
+  "version": "1.0.0",
+  "description": "Npm audit Scanner",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "bscript",
+  "license": "ISC",
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@tanstack/react-table": "^8.20.5",
+    "chart.js": "^4.4.4",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "framer-motion": "^11.3.31",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.3",
+    "lucide-react": "^0.438.0",
+    "next": "^14.2.7",
+    "npm-audit-report": "^5.0.0",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.3",
+    "react-markdown": "^9.0.1",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.2",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.43",
+    "typescript": "^5.5.4"
+  },
+  "directories": {
+    "lib": "lib"
+  }
+}
