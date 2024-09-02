@@ -323,23 +323,26 @@ const NpmAuditDashboard: React.FC = () => {
             </motion.h1>
 
             <motion.div
-                {...getRootProps()}
                 className="mb-8"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
             >
-                <input {...getInputProps()} />
-                <div className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-300 ${isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary hover:bg-gray-50'
-                    }`}>
-                    {isDragActive ? (
-                        <p className="text-primary text-xl font-semibold">Drop the package.json file here</p>
-                    ) : (
-                        <div>
-                            <p className="text-gray-600 text-xl mb-2">Drag and drop a package.json file here</p>
-                            <p className="text-gray-400">or click to select a file</p>
-                        </div>
-                    )}
+                <div {...getRootProps()}>
+                    <input {...getInputProps()} />
+                    <div
+                        className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-300 ${isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                            }`}
+                    >
+                        {isDragActive ? (
+                            <p className="text-blue-600 text-xl font-semibold">Drop the package.json file here</p>
+                        ) : (
+                            <div>
+                                <p className="text-gray-600 text-xl mb-2">Drag and drop a package.json file here</p>
+                                <p className="text-gray-500">or click to select a file</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </motion.div>
 
