@@ -26,14 +26,16 @@ export default async function handler(
     fs.writeFileSync(tempFile, JSON.stringify({ dependencies }, null, 2));
 
     console.log('Temporary package.json created at:', tempFile);
+    console.log('package.json contents:', fs.readFileSync(tempFile, 'utf8'));
 
-    // Use npm ci --package-lock-only to generate a package-lock.json
-    console.log('Creating dummy node_modules and package-lock.json...');
+    // Create package-lock.json
+    console.log('Creating package-lock.json...');
     try {
-      // Use `npm ci --package-lock-only` to create `package-lock.json`
       await execPromise('npm install --package-lock-only', { cwd: tempDir });
+      console.log('package-lock.json contents:', fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'));
     } catch (error) {
       console.error('Failed to create package-lock.json:', error);
+      return res.status(500).json({ error: 'Failed to create package-lock.json' });
     }
 
     // Run npm audit
@@ -48,6 +50,9 @@ export default async function handler(
       stdout = error.stdout;
       stderr = error.stderr;
     }
+
+    console.log('npm audit stdout:', stdout);
+    console.log('npm audit stderr:', stderr);
 
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
