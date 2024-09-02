@@ -18,61 +18,83 @@ export default async function handler(
   try {
     const { dependencies } = req.body;
 
+    if (!dependencies || typeof dependencies !== 'object') {
+      return res.status(400).json({ error: 'Invalid dependencies format' });
+    }
+
+    // Log dependencies to verify
+    console.log('Received dependencies:', dependencies);
+
     // Create a temporary directory
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'npm-audit-'));
 
     // Write dependencies to a temporary package.json
     const tempFile = path.join(tempDir, 'package.json');
-    fs.writeFileSync(tempFile, JSON.stringify({ dependencies }, null, 2));
+
+    // Ensure package.json has required "name" and "version" fields
+    const packageJsonContent = {
+      name: "temp-package",  // Default package name
+      version: "1.0.0",      // Default version
+      dependencies: dependencies,  // Add uploaded dependencies
+    };
+
+    fs.writeFileSync(tempFile, JSON.stringify(packageJsonContent, null, 2));
 
     console.log('Temporary package.json created at:', tempFile);
     console.log('package.json contents:', fs.readFileSync(tempFile, 'utf8'));
 
-    // Create package-lock.json using npx to control npm version and network usage
-    console.log('Creating package-lock.json...');
+    // Generate package-lock.json
+    console.log('Generating package-lock.json...');
     try {
-      // Use `npx npm install --package-lock-only --offline` to try avoiding network fetches
-      await execPromise('npx npm install --package-lock-only --offline', { cwd: tempDir });
-      console.log('package-lock.json contents:', fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'));
+      await execPromise('npm install --package-lock-only --ignore-scripts', { cwd: tempDir });
+      console.log('Generated package-lock.json:', fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'));
     } catch (error) {
       console.error('Failed to create package-lock.json:', error);
       return res.status(500).json({ error: 'Failed to create package-lock.json', details: error.message });
     }
 
-    // Run npm audit
-    console.log('Running npm audit...');
-    let stdout, stderr;
+    // Install dependencies to populate node_modules
+    console.log('Installing dependencies (offline mode) to populate node_modules...');
     try {
-      const result = await execPromise('npx npm audit --json --omit=dev', { cwd: tempDir });
-      stdout = result.stdout;
-      stderr = result.stderr;
-    } catch (error: any) {
-      // npm audit exits with non-zero status if vulnerabilities are found
-      stdout = error.stdout;
-      stderr = error.stderr;
+      await execPromise('npm install --ignore-scripts', { cwd: tempDir });
+      console.log('Dependencies installed.');
+    } catch (error) {
+      console.error('Failed to install dependencies:', error);
     }
 
-    console.log('npm audit stdout:', stdout);
-    console.log('npm audit stderr:', stderr);
+    // Run npm audit
+    console.log('Running npm audit...');
+    let stdoutAudit, stderrAudit;
+    try {
+      const result = await execPromise(`npm audit --json --omit=dev`, { cwd: tempDir });
+      stdoutAudit = result.stdout;
+      stderrAudit = result.stderr;
+    } catch (error: any) {
+      stdoutAudit = error.stdout;
+      stderrAudit = error.stderr;
+    }
+
+    console.log('npm audit stdout:', stdoutAudit);
+    console.log('npm audit stderr:', stderrAudit);
 
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
 
-    if (stderr) {
-      console.error('Audit stderr:', stderr);
+    if (stderrAudit) {
+      console.error('Audit stderr:', stderrAudit);
     }
 
     // Parse audit output
     let auditOutput;
     try {
-      auditOutput = JSON.parse(stdout);
+      auditOutput = JSON.parse(stdoutAudit);
     } catch (parseError) {
       console.error('Error parsing audit output:', parseError);
       return res.status(500).json({ 
         error: 'Failed to parse npm audit output', 
         details: parseError.message,
-        stdout,
-        stderr 
+        stdoutAudit,
+        stderrAudit 
       });
     }
 
