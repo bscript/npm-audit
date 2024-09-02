@@ -28,21 +28,22 @@ export default async function handler(
     console.log('Temporary package.json created at:', tempFile);
     console.log('package.json contents:', fs.readFileSync(tempFile, 'utf8'));
 
-    // Create package-lock.json
+    // Create package-lock.json using npx to control npm version and network usage
     console.log('Creating package-lock.json...');
     try {
-      await execPromise('npm install --package-lock-only', { cwd: tempDir });
+      // Use `npx npm install --package-lock-only --offline` to try avoiding network fetches
+      await execPromise('npx npm install --package-lock-only --offline', { cwd: tempDir });
       console.log('package-lock.json contents:', fs.readFileSync(path.join(tempDir, 'package-lock.json'), 'utf8'));
     } catch (error) {
       console.error('Failed to create package-lock.json:', error);
-      return res.status(500).json({ error: 'Failed to create package-lock.json' });
+      return res.status(500).json({ error: 'Failed to create package-lock.json', details: error.message });
     }
 
     // Run npm audit
     console.log('Running npm audit...');
     let stdout, stderr;
     try {
-      const result = await execPromise('npm audit --json --omit=dev', { cwd: tempDir });
+      const result = await execPromise('npx npm audit --json --omit=dev', { cwd: tempDir });
       stdout = result.stdout;
       stderr = result.stderr;
     } catch (error: any) {
